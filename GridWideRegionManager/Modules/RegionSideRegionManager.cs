@@ -158,7 +158,9 @@ namespace Aurora.Addon.GridWideRegionManager
                 switch (map["Method"].AsString ())
                 {
                     case "Shutdown":
-                        m_manager.Shutdown (m_ourScene);
+                        ShutdownType type = map["Type"] == "Immediate" ? ShutdownType.Immediate : ShutdownType.Delayed;
+                        int seconds = map["Seconds"].AsInteger ();
+                        m_manager.Shutdown (m_ourScene, type, seconds);
                         break;
                     case "Start":
                         m_manager.Start (m_ourRegInfo);
@@ -171,10 +173,14 @@ namespace Aurora.Addon.GridWideRegionManager
             }
         }
 
-        internal void Shutdown (IScene scene)
+        internal void Shutdown (IScene scene, ShutdownType type, int seconds)
         {
             SceneManager manager = scene.RequestModuleInterface<SceneManager> ();
-            manager.CloseRegion (scene);
+            foreach (IScenePresence sp in scene.GetScenePresences ())
+            {
+                sp.ControllingClient.SendAlertMessage ("Region is shutting down in " + seconds + " seconds");
+            }
+            manager.CloseRegion (scene, type, seconds);
         }
 
         internal void Start (RegionInfo rInfo)

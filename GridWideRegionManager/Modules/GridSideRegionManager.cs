@@ -148,6 +148,8 @@ namespace Aurora.Addon.GridWideRegionManager
             {
                 OSDMap map = new OSDMap ();
                 map["Method"] = "Shutdown";
+                map["Type"] = "Immediate";
+                map["Seconds"] = 0;
                 WebUtils.PostToService (kvp.Value, map, false, false);
                 MainConsole.Instance.Output ("Closed region " + kvp.Key.RegionName);
             }
@@ -161,6 +163,9 @@ namespace Aurora.Addon.GridWideRegionManager
                 return;
             OSDMap map = new OSDMap ();
             map["Method"] = "Shutdown";
+            map["Type"] = MainConsole.Instance.CmdPrompt("Shutdown Type (Immediate or Delayed)", "Immediate") == "Immediate" ? "Immediate" : "Delayed";
+            if(map["Type"] == "Delayed")
+                map["Seconds"] = int.Parse(MainConsole.Instance.CmdPrompt("Seconds before delayed shutdown", "60"));
             WebUtils.PostToService (region.Value, map, false, false);
             MainConsole.Instance.Output ("Closed region " + region.Key.RegionName);
         }
