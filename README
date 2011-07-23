@@ -1,0 +1,26 @@
+/* 
+   Copyright 2011 Matthew Beardmore
+   This file is part of Aurora-Sim Addon Modules.
+
+   Aurora-Sim Addon Modules is free software:
+   you can redistribute it and/or modify it under the
+   terms of the GNU General Public License as published 
+   by the Free Software Foundation, either version 3 
+   of the License, or (at your option) any later version.
+   Aurora-Sim Addon Modules is distributed in the hope that 
+   it will be useful, but WITHOUT ANY WARRANTY; without 
+   even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+   You should have received a copy of the GNU General Public 
+   License along with Aurora-Sim Addon Modules. If not, see http://www.gnu.org/licenses/.
+*/
+
+Drop the directory in the addon-modules directory in Aurora-Sim.
+Run prebuild/compile.
+Set up to use the database region loader rather than the file based.
+Use the console commands:
+
+close region
+close regions
+show regions
+start region
