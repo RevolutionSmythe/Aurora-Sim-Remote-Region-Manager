@@ -40,7 +40,10 @@ namespace Aurora.Addon.GridWideRegionManager
             MainConsole.Instance.Commands.AddCommand ("close all regions", "close all regions", "Shuts down all regions in the grid", closeRegions);
             MainConsole.Instance.Commands.AddCommand ("close region", "close region", "Shuts down a region in the grid", closeRegion);
             MainConsole.Instance.Commands.AddCommand ("start region", "start region", "Starts up a region in the grid", startRegion);
+            MainConsole.Instance.Commands.AddCommand ("change region startup status", "change region startup status", "Changes whether the given region will start up by default", changeRegionStartupStatus);
             MainConsole.Instance.Commands.AddCommand ("show regions", "show regions", "Shows information about regions in the grid", showRegions);
+            MainConsole.Instance.Commands.AddCommand ("stop region scripts", "stop region scripts", "Stops a region's scripts", stopScripts);
+            MainConsole.Instance.Commands.AddCommand ("start region scripts", "start region scripts", "Starts a region's scripts", startScripts);
         }
 
         public void Start (IConfigSource config, IRegistryCore registry)
@@ -214,6 +217,37 @@ namespace Aurora.Addon.GridWideRegionManager
                         MainConsole.Instance.Output (kvp.Key.RegionName + " - Offline");
                 }
             }
+        }
+
+        private void changeRegionStartupStatus (string[] cmd)
+        {
+            KeyValuePair<GridRegion, string> region = GetWhatRegion ("change");
+            if (region.Key == null)
+                return;
+            OSDMap map = new OSDMap ();
+            map["Method"] = "ChangeStartupStatus";
+            map["StatusEnabled"] = MainConsole.Instance.CmdPrompt ("Start the region on the next instance restart?", "yes") == "yes";
+            WebUtils.PostToService (region.Value, map, false, false);
+        }
+
+        private void startScripts (string[] cmd)
+        {
+            KeyValuePair<GridRegion, string> region = GetWhatRegion ("change");
+            if (region.Key == null)
+                return;
+            OSDMap map = new OSDMap ();
+            map["Method"] = "StartScripts";
+            WebUtils.PostToService (region.Value, map, false, false);
+        }
+
+        private void stopScripts (string[] cmd)
+        {
+            KeyValuePair<GridRegion, string> region = GetWhatRegion ("change");
+            if (region.Key == null)
+                return;
+            OSDMap map = new OSDMap ();
+            map["Method"] = "StopScripts";
+            WebUtils.PostToService (region.Value, map, false, false);
         }
     }
 }

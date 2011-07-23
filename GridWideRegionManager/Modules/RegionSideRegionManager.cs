@@ -165,6 +165,15 @@ namespace Aurora.Addon.GridWideRegionManager
                     case "Start":
                         m_manager.Start (m_ourRegInfo);
                         break;
+                    case "StopScripts":
+                        m_manager.StopScripts (m_ourScene);
+                        break;
+                    case "StartScripts":
+                        m_manager.StartScripts (m_ourScene);
+                        break;
+                    case "ChangeStartupStatus":
+                        m_manager.ChangeStartupStatus (m_ourRegInfo, map["StatusEnabled"].AsBoolean());
+                        break;
                     default:
                         break;
                 }
@@ -176,9 +185,13 @@ namespace Aurora.Addon.GridWideRegionManager
         internal void Shutdown (IScene scene, ShutdownType type, int seconds)
         {
             SceneManager manager = scene.RequestModuleInterface<SceneManager> ();
-            foreach (IScenePresence sp in scene.GetScenePresences ())
+            if (type == ShutdownType.Delayed)
             {
-                sp.ControllingClient.SendAlertMessage ("Region is shutting down in " + seconds + " seconds");
+                foreach (IScenePresence sp in scene.GetScenePresences ())
+                {
+                    if(!sp.IsChildAgent)
+                        sp.ControllingClient.SendAlertMessage ("Region is shutting down in " + seconds + " seconds");
+                }
             }
             manager.CloseRegion (scene, type, seconds);
         }
@@ -187,6 +200,23 @@ namespace Aurora.Addon.GridWideRegionManager
         {
             SceneManager manager = m_simBase.ApplicationRegistry.RequestModuleInterface<SceneManager> ();
             manager.StartNewRegion (rInfo);
+        }
+
+        internal void ChangeStartupStatus (RegionInfo rInfo, bool enabled)
+        {
+            IRegionInfoConnector conn = Aurora.DataManager.DataManager.RequestPlugin<IRegionInfoConnector> ();
+            rInfo.Disabled = !enabled;
+            conn.UpdateRegionInfo (rInfo);
+        }
+
+        internal void StopScripts (IScene scene)
+        {
+            scene.RequestModuleInterface<IEstateModule> ().SetSceneCoreDebug (false, true, true);
+        }
+
+        internal void StartScripts (IScene scene)
+        {
+            scene.RequestModuleInterface<IEstateModule> ().SetSceneCoreDebug (true, true, true);
         }
     }
 }
