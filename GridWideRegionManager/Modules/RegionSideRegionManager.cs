@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Aurora.Framework;
 using OpenSim.Framework;
@@ -169,7 +168,13 @@ namespace Aurora.Addon.GridWideRegionManager
                         m_manager.StopScripts (m_ourScene);
                         break;
                     case "StartScripts":
-                        m_manager.StartScripts (m_ourScene);
+                        m_manager.StartScripts(m_ourScene);
+                        break;
+                    case "LoadOAR":
+                        m_manager.LoadOAR(m_ourScene, map["Data"].AsBinary(), map["Merge"],
+                            map["SkipAssets"], map["OffsetX"], map["OffsetY"], map["OffsetZ"],
+                            map["FlipX"], map["FlipY"], map["UseParcelOwnership"],
+                            map["CheckOwnership"]);
                         break;
                     case "ChangeStartupStatus":
                         m_manager.ChangeStartupStatus (m_ourRegInfo, map["StatusEnabled"].AsBoolean());
@@ -217,6 +222,14 @@ namespace Aurora.Addon.GridWideRegionManager
         internal void StartScripts (IScene scene)
         {
             scene.RequestModuleInterface<IEstateModule> ().SetSceneCoreDebug (true, true, true);
+        }
+
+        internal void LoadOAR(IScene scene, byte[] OARData, bool merge, bool skipAssets,
+            int offsetX, int offsetY, int offsetZ, bool flipX, bool flipY, bool useParcelOwnership, bool checkOwnership)
+        {
+            MemoryStream stream = new MemoryStream(OARData);
+            BufferedStream bufferedStream = new BufferedStream(stream, 1000000);
+            scene.RequestModuleInterface<IRegionArchiverModule>().DearchiveRegion(bufferedStream, merge, skipAssets, offsetX, offsetY, offsetZ, flipX, flipY, useParcelOwnership, checkOwnership);
         }
     }
 }

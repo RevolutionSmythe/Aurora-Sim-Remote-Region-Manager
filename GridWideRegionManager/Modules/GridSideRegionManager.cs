@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Aurora.Framework;
 using OpenSim.Framework;
@@ -42,8 +41,9 @@ namespace Aurora.Addon.GridWideRegionManager
             MainConsole.Instance.Commands.AddCommand ("start region", "start region", "Starts up a region in the grid", startRegion);
             MainConsole.Instance.Commands.AddCommand ("change region startup status", "change region startup status", "Changes whether the given region will start up by default", changeRegionStartupStatus);
             MainConsole.Instance.Commands.AddCommand ("show regions", "show regions", "Shows information about regions in the grid", showRegions);
-            MainConsole.Instance.Commands.AddCommand ("stop region scripts", "stop region scripts", "Stops a region's scripts", stopScripts);
-            MainConsole.Instance.Commands.AddCommand ("start region scripts", "start region scripts", "Starts a region's scripts", startScripts);
+            MainConsole.Instance.Commands.AddCommand("stop region scripts", "stop region scripts", "Stops a region's scripts", stopScripts);
+            MainConsole.Instance.Commands.AddCommand("start region scripts", "start region scripts", "Starts a region's scripts", startScripts);
+            MainConsole.Instance.Commands.AddCommand("remote load oar", "remote load oar", "Loads an OAR on a remote region", remoteLoadOAR);
         }
 
         public void Start (IConfigSource config, IRegistryCore registry)
@@ -173,15 +173,101 @@ namespace Aurora.Addon.GridWideRegionManager
             MainConsole.Instance.Output ("Closed region " + region.Key.RegionName);
         }
 
-        private void startRegion (string[] cmd)
+        private void startRegion(string[] cmd)
         {
-            KeyValuePair<GridRegion, string> region = GetWhatRegion ("start");
+            KeyValuePair<GridRegion, string> region = GetWhatRegion("start");
             if (region.Key == null)
                 return;
-            OSDMap map = new OSDMap ();
+            OSDMap map = new OSDMap();
             map["Method"] = "Start";
-            WebUtils.PostToService (region.Value, map, false, false);
-            MainConsole.Instance.Output ("Started region " + region.Key.RegionName);
+            WebUtils.PostToService(region.Value, map, false, false);
+            MainConsole.Instance.Output("Started region " + region.Key.RegionName);
+        }
+
+        private void remoteLoadOAR(string[] cmd)
+        {
+            KeyValuePair<GridRegion, string> region = GetWhatRegion("load an oar on");
+            if (region.Key == null)
+                return;
+            OSDMap map = new OSDMap();
+            map["Method"] = "LoadOAR";
+            map["Data"] = File.ReadAllBytes(MainConsole.Instance.CmdPrompt("OAR File to load: "));
+            string parameters = MainConsole.Instance.CmdPrompt("Any parameters (as used with a normal load OAR command): ");
+            bool mergeOar = false;
+            bool skipAssets = false;
+            int offsetX = 0;
+            int offsetY = 0;
+            int offsetZ = 0;
+            bool flipX = false;
+            bool flipY = false;
+            bool useParcelOwnership = false;
+            bool checkOwnership = false;
+
+            int i = 0;
+            List<string> newParams = new List<string>(parameters.Split(' '));
+            foreach (string param in parameters.Split(' '))
+            {
+                if (param.StartsWith("--skip-assets", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    skipAssets = true;
+                    newParams.Remove(param);
+                }
+                if (param.StartsWith("--merge", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    mergeOar = true;
+                    newParams.Remove(param);
+                }
+                if (param.StartsWith("--OffsetX", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    string retVal = param.Remove(0, 10);
+                    int.TryParse(retVal, out offsetX);
+                    newParams.Remove(param);
+                }
+                if (param.StartsWith("--OffsetY", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    string retVal = param.Remove(0, 10);
+                    int.TryParse(retVal, out offsetY);
+                    newParams.Remove(param);
+                }
+                if (param.StartsWith("--OffsetZ", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    string retVal = param.Remove(0, 10);
+                    int.TryParse(retVal, out offsetZ);
+                    newParams.Remove(param);
+                }
+                if (param.StartsWith("--FlipX", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    flipX = true;
+                    newParams.Remove(param);
+                }
+                if (param.StartsWith("--FlipY", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    flipY = true;
+                    newParams.Remove(param);
+                }
+                if (param.StartsWith("--UseParcelOwnership", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    useParcelOwnership = true;
+                    newParams.Remove(param);
+                }
+                if (param.StartsWith("--CheckOwnership", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    checkOwnership = true;
+                    newParams.Remove(param);
+                }
+                i++;
+            }
+            map["Merge"] = mergeOar;
+            map["SkipAssets"] = skipAssets;
+            map["OffsetX"] = offsetX;
+            map["OffsetY"] = offsetY;
+            map["OffsetZ"] = offsetZ;
+            map["FlipX"] = flipX;
+            map["FlipY"] = flipY;
+            map["UseParcelOwnership"] = useParcelOwnership;
+            map["CheckOwnership"] = checkOwnership;
+            WebUtils.PostToService(region.Value, map, int.MaxValue, false, false);
+            MainConsole.Instance.Output("Loading OAR on region " + region.Key.RegionName);
         }
 
         private KeyValuePair<GridRegion, string> GetWhatRegion (string action)
