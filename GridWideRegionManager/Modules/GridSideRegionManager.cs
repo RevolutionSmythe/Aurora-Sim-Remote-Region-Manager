@@ -19,8 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Aurora.Framework;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers.HttpServer;
+using Aurora.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
 using Aurora.Simulation.Base;
 using Nini.Config;
@@ -36,6 +35,8 @@ namespace Aurora.Addon.GridWideRegionManager
         public void Initialize (IConfigSource config, IRegistryCore registry)
         {
             m_registry = registry;
+            if (MainConsole.Instance == null)
+                return;
             MainConsole.Instance.Commands.AddCommand ("close all regions", "close all regions", "Shuts down all regions in the grid", closeRegions);
             MainConsole.Instance.Commands.AddCommand ("close region", "close region", "Shuts down a region in the grid", closeRegion);
             MainConsole.Instance.Commands.AddCommand ("start region", "start region", "Starts up a region in the grid", startRegion);
@@ -101,7 +102,7 @@ namespace Aurora.Addon.GridWideRegionManager
                 sr.Close ();
                 body = body.Trim ();
 
-                //m_log.DebugFormat("[XXX]: query String: {0}", body);
+                //MainConsole.Instance.DebugFormat("[XXX]: query String: {0}", body);
 
                 OSDMap map = (OSDMap)OSDParser.DeserializeJson (body);
                 GridRegion reg = new GridRegion ();
@@ -166,9 +167,9 @@ namespace Aurora.Addon.GridWideRegionManager
                 return;
             OSDMap map = new OSDMap ();
             map["Method"] = "Shutdown";
-            map["Type"] = MainConsole.Instance.CmdPrompt("Shutdown Type (Immediate or Delayed)", "Immediate") == "Immediate" ? "Immediate" : "Delayed";
+            map["Type"] = MainConsole.Instance.Prompt("Shutdown Type (Immediate or Delayed)", "Immediate") == "Immediate" ? "Immediate" : "Delayed";
             if(map["Type"] == "Delayed")
-                map["Seconds"] = int.Parse(MainConsole.Instance.CmdPrompt("Seconds before delayed shutdown", "60"));
+                map["Seconds"] = int.Parse(MainConsole.Instance.Prompt("Seconds before delayed shutdown", "60"));
             WebUtils.PostToService (region.Value, map, false, false);
             MainConsole.Instance.Output ("Closed region " + region.Key.RegionName);
         }
@@ -191,8 +192,8 @@ namespace Aurora.Addon.GridWideRegionManager
                 return;
             OSDMap map = new OSDMap();
             map["Method"] = "LoadOAR";
-            map["Data"] = File.ReadAllBytes(MainConsole.Instance.CmdPrompt("OAR File to load: "));
-            string parameters = MainConsole.Instance.CmdPrompt("Any parameters (as used with a normal load OAR command): ");
+            map["Data"] = File.ReadAllBytes(MainConsole.Instance.Prompt("OAR File to load: "));
+            string parameters = MainConsole.Instance.Prompt("Any parameters (as used with a normal load OAR command): ");
             bool mergeOar = false;
             bool skipAssets = false;
             int offsetX = 0;
@@ -272,7 +273,7 @@ namespace Aurora.Addon.GridWideRegionManager
 
         private KeyValuePair<GridRegion, string> GetWhatRegion (string action)
         {
-            string cmd = MainConsole.Instance.CmdPrompt ("What region should we " + action + " (region name)", "");
+            string cmd = MainConsole.Instance.Prompt ("What region should we " + action + " (region name)", "");
             if (cmd == "")
                 return new KeyValuePair<GridRegion, string> ();
             foreach (KeyValuePair<GridRegion, string> kvp in m_regionsWeControl)
@@ -290,7 +291,7 @@ namespace Aurora.Addon.GridWideRegionManager
 
         private void showRegions (string[] cmd)
         {
-            bool allPossible = MainConsole.Instance.CmdPrompt("Show all possible regions?", "no") != "no";
+            bool allPossible = MainConsole.Instance.Prompt("Show all possible regions?", "no") != "no";
             foreach (KeyValuePair<GridRegion, string> kvp in m_regionsWeControl)
             {
                 MainConsole.Instance.Output (kvp.Key.RegionName + " - Online");
@@ -312,7 +313,7 @@ namespace Aurora.Addon.GridWideRegionManager
                 return;
             OSDMap map = new OSDMap ();
             map["Method"] = "ChangeStartupStatus";
-            map["StatusEnabled"] = MainConsole.Instance.CmdPrompt ("Start the region on the next instance restart?", "yes") == "yes";
+            map["StatusEnabled"] = MainConsole.Instance.Prompt ("Start the region on the next instance restart?", "yes") == "yes";
             WebUtils.PostToService (region.Value, map, false, false);
         }
 

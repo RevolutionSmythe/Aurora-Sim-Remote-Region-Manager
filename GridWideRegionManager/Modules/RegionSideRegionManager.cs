@@ -19,8 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Aurora.Framework;
-using OpenSim.Framework;
-using OpenSim.Framework.Servers.HttpServer;
+using Aurora.Framework.Servers.HttpServer;
 using OpenSim.Services.Interfaces;
 using Aurora.Simulation.Base;
 using Nini.Config;
@@ -83,12 +82,16 @@ namespace Aurora.Addon.GridWideRegionManager
             IConfigurationService configService = scene.RequestModuleInterface<IConfigurationService> ();
             if (configService != null)
             {
-                string url = configService.FindValueOf ("RegionManagerURL")[0];
-                OSDMap data = new OSDMap ();
-                data["Method"] = "RegionOnline";
-                data["URL"] = BuildOurURL (scene, scene.RegionInfo);
-                data["Region"] = new GridRegion (scene.RegionInfo).ToOSD ();
-                WebUtils.PostToService (url, data, false, false);
+                List<string> urls;
+                if ((urls = configService.FindValueOf("RegionManagerURL")).Count > 0)
+                {
+                    string url = urls[0];
+                    OSDMap data = new OSDMap();
+                    data["Method"] = "RegionOnline";
+                    data["URL"] = BuildOurURL(scene, scene.RegionInfo);
+                    data["Region"] = new GridRegion(scene.RegionInfo).ToOSD();
+                    WebUtils.PostToService(url, data, false, false);
+                }
             }
         }
 
@@ -97,12 +100,16 @@ namespace Aurora.Addon.GridWideRegionManager
             IConfigurationService configService = someScene.RequestModuleInterface<IConfigurationService> ();
             if (configService != null)
             {
-                string url = configService.FindValueOf ("RegionManagerURL")[0];
-                OSDMap data = new OSDMap ();
-                data["Method"] = "RegionProvided";
-                data["URL"] = BuildOurURL (null, rInfo);
-                data["Region"] = new GridRegion (rInfo).ToOSD ();
-                WebUtils.PostToService (url, data, false, false);
+                List<string> urls;
+                if ((urls = configService.FindValueOf("RegionManagerURL")).Count > 0)
+                {
+                    string url = urls[0];
+                    OSDMap data = new OSDMap();
+                    data["Method"] = "RegionProvided";
+                    data["URL"] = BuildOurURL(null, rInfo);
+                    data["Region"] = new GridRegion(rInfo).ToOSD();
+                    WebUtils.PostToService(url, data, false, false);
+                }
             }
         }
 
@@ -111,11 +118,15 @@ namespace Aurora.Addon.GridWideRegionManager
             IConfigurationService configService = scene.RequestModuleInterface<IConfigurationService> ();
             if (configService != null)
             {
-                string url = configService.FindValueOf ("RegionManagerURL")[0];
-                OSDMap data = new OSDMap ();
-                data["Method"] = "RegionOffline";
-                data["Region"] = new GridRegion (scene.RegionInfo).ToOSD ();
-                WebUtils.PostToService (url, data, false, false);
+                List<string> urls;
+                if ((urls = configService.FindValueOf("RegionManagerURL")).Count > 0)
+                {
+                    string url = urls[0];
+                    OSDMap data = new OSDMap();
+                    data["Method"] = "RegionOffline";
+                    data["Region"] = new GridRegion(scene.RegionInfo).ToOSD();
+                    WebUtils.PostToService(url, data, false, false);
+                }
             }
         }
 
@@ -150,7 +161,7 @@ namespace Aurora.Addon.GridWideRegionManager
                 sr.Close ();
                 body = body.Trim ();
 
-                //m_log.DebugFormat("[XXX]: query String: {0}", body);
+                //MainConsole.Instance.DebugFormat("[XXX]: query String: {0}", body);
 
                 OSDMap map = (OSDMap)OSDParser.DeserializeJson (body);
                 GridRegion reg = new GridRegion ();
